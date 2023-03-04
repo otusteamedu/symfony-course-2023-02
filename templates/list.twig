@@ -1,0 +1,7 @@
+{% extends 'layout.twig' %}
+
+<ul id="user.list">
+    {% for user in users %}
+        <li>{{ user.firstName|upper }} {{ user.middleName|lower }} {{ user.lastName }} ({{ user.phone }}) </li>
+    {% endfor %}
+</ul>
