@@ -15,8 +15,8 @@ class WorldController extends AbstractController
 
     public function hello(): Response
     {
-        return $this->render('user-content.twig', [
-            'users' => $this->manager->getUserList(),
+        return $this->render('user-vue.twig', [
+            'users' => json_encode($this->manager->getUserAsArrayList(), JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
         ]);
     }
 }

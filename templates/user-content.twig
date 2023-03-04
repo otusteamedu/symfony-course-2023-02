@@ -6,7 +6,7 @@
     User table {{ parent() }}
 {% endblock %}
 {% block body %}
-    <ul id="user.list">
+    <ul id="user.list" class="list-group">
         {% for user in users %}
             {{ macros.renderUser(user) }}
         {% endfor %}
