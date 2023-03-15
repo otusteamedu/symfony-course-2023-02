@@ -47,7 +47,7 @@ class UserController
     public function deleteUserAction(Request $request): Response
     {
         $userId = $request->query->get('userId');
-        $result = $this->userManager->deleteUser($userId);
+        $result = $this->userManager->deleteUserById($userId);
 
         return new JsonResponse(['success' => $result], $result ? 200 : 404);
     }
@@ -59,13 +59,13 @@ class UserController
         $login = $request->query->get('login');
         $result = $this->userManager->updateUser($userId, $login);
 
-        return new JsonResponse(['success' => $result], $result ? 200 : 404);
+        return new JsonResponse(['success' => $result !== null], ($result !== null) ? 200 : 404);
     }
 
     #[Route(path: '/{id}', requirements: ['id' => '\d+'], methods: ['DELETE'])]
     public function deleteUserByIdAction(int $id): Response
     {
-        $result = $this->userManager->deleteUser($id);
+        $result = $this->userManager->deleteUserById($id);
 
         return new JsonResponse(['success' => $result], $result ? 200 : 404);
     }
