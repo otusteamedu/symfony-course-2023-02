@@ -13,7 +13,9 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-#[Route(path: 'api/v2/user')]
+/**
+ * @Route("api/v2/user")
+ */
 class UserController extends AbstractController
 {
     private UserManager $userManager;
@@ -23,8 +25,10 @@ class UserController extends AbstractController
         $this->userManager = $userManager;
     }
 
-    #[Route(path: '')]
-    #[Method(['POST'])]
+    /**
+     * @Route("")
+     * @Method({"POST"})
+     */
     public function saveUserAction(Request $request): Response
     {
         $login = $request->request->get('login');
@@ -36,8 +40,10 @@ class UserController extends AbstractController
         return new JsonResponse($data, $code);
     }
 
-    #[Route(path: '')]
-    #[Method(['GET'])]
+    /**
+     * @Route("")
+     * @Method({"GET"})
+     */
     public function getUsersAction(Request $request): Response
     {
         $perPage = $request->request->get('perPage');
@@ -48,16 +54,20 @@ class UserController extends AbstractController
         return new JsonResponse(['users' => array_map(static fn(User $user) => $user->toArray(), $users)], $code);
     }
 
-    #[Route(path: '/by-login/{user_login}', methods: ['GET'], priority: 2)]
-    #[Method(['GET'])]
+    /**
+     * @Route("/by-login/{user_login}")
+     * @Method({"GET"})
+     */
     #[ParamConverter('user', options: ['mapping' => ['user_login' => 'login']])]
     public function getUserByLoginAction(User $user): Response
     {
         return new JsonResponse(['user' => $user->toArray()], 200);
     }
 
-    #[Route(path: '/{user_id}', requirements: ['user_id' => '\d+'])]
-    #[Method(['DELETE'])]
+    /**
+     * @Route("/{user_id}", requirements={"id":"\d{1,18}"})
+     * @Method({"DELETE"})
+     */
     #[Entity('user', expr: 'repository.find(user_id)')]
     public function deleteUserAction(User $user): Response
     {
@@ -66,8 +76,10 @@ class UserController extends AbstractController
         return new JsonResponse(['success' => $result], $result ? 200 : 404);
     }
 
-    #[Route(path: '')]
-    #[Method(['PATCH'])]
+    /**
+     * @Route("")
+     * @Method({"PATCH"})
+     */
     public function updateUserAction(Request $request): Response
     {
         $userId = $request->request->get('userId');
