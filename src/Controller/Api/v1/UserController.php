@@ -3,7 +3,10 @@
 namespace App\Controller\Api\v1;
 
 use App\Entity\User;
+use App\Event\CreateUserEvent;
+use App\Exception\DeprecatedApiException;
 use App\Manager\UserManager;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -16,13 +19,16 @@ use Symfony\Component\Routing\Annotation\Route;
 class UserController
 {
     public function __construct(
-        private readonly UserManager $userManager
+        private readonly UserManager $userManager,
+        private readonly EventDispatcherInterface $eventDispatcher,
     ) {
     }
 
     #[Route(path: '', methods: ['POST'])]
     public function saveUserAction(Request $request): Response
     {
+        throw new DeprecatedApiException('This API method is deprecated');
+
         $login = $request->request->get('login');
         $userId = $this->userManager->saveUser($login);
         [$data, $code] = $userId === null ?
@@ -68,5 +74,15 @@ class UserController
         $result = $this->userManager->deleteUserById($id);
 
         return new JsonResponse(['success' => $result], $result ? 200 : 404);
+    }
+
+    /**
+     * @Route("/async", methods={"POST"})
+     */
+    public function saveUserAsyncAction(Request $request): Response
+    {
+        $this->eventDispatcher->dispatch(new CreateUserEvent($request->request->get('login')));
+
+        return new JsonResponse(['success' => true], Response::HTTP_ACCEPTED);
     }
 }
