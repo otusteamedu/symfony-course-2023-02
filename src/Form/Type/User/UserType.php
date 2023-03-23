@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Form\Type;
+namespace App\Form\Type\User;
 
-use App\Entity\User;
+use App\DTO\ManageUserDTO;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
@@ -32,25 +32,18 @@ class UserType extends AbstractType
                 'required' => false,
             ])
             ->add('submit', SubmitType::class);
-
-        if ($options['isNew'] ?? false) {
-            $builder->add('password', PasswordType::class, [
-                'label' => 'Пароль пользователя',
-            ]);
-        }
     }
 
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults([
-            'data_class' => User::class,
-            'empty_data' => new User(),
-            'isNew' => false,
+            'data_class' => ManageUserDTO::class,
+            'empty_data' => new ManageUserDTO(),
         ]);
     }
 
     public function getBlockPrefix(): string
     {
-        return 'save_user';
+        return 'manage_user';
     }
 }

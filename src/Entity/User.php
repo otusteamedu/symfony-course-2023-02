@@ -7,6 +7,7 @@ use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 use Gedmo\Mapping\Annotation as Gedmo;
 
 #[ORM\Table(name: '`user`')]
@@ -50,11 +51,13 @@ class User implements HasMetaTimestampsInterface
     #[ORM\Column(type: 'string', length: 32, nullable: false)]
     private string $password;
 
+    #[Assert\NotBlank]
+    #[Assert\GreaterThan(18)]
     #[ORM\Column(type: 'integer', nullable: false)]
     private int $age;
 
     #[ORM\Column(type: 'boolean', nullable: false)]
-    private string $isActive;
+    private bool $isActive;
 
     public function __construct()
     {
@@ -199,5 +202,13 @@ class User implements HasMetaTimestampsInterface
     public function setIsActive(bool $isActive): void
     {
         $this->isActive = $isActive;
+    }
+
+    /**
+     * @return User[]
+     */
+    public function getFollowers(): array
+    {
+        return $this->followers->toArray();
     }
 }
