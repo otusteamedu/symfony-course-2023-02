@@ -13,7 +13,7 @@ class UserManager
     ) {
     }
 
-    public function saveUser(string $login): ?int
+    public function saveUserByLogin(string $login): ?int
     {
         $user = new User();
         $user->setLogin($login);
@@ -67,5 +67,11 @@ class UserManager
         $userRepository = $this->entityManager->getRepository(User::class);
 
         return $userRepository->getUsers($page, $perPage);
+    }
+
+    public function saveUser(User $user): void
+    {
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
     }
 }

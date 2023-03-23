@@ -5,9 +5,11 @@ namespace App\Controller\Api\v1;
 use App\Entity\User;
 use App\Event\CreateUserEvent;
 use App\Exception\DeprecatedApiException;
+use App\Form\Type\UserType;
 use App\Manager\UserManager;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,12 +17,12 @@ use Symfony\Component\HttpKernel\Attribute\AsController;
 use Symfony\Component\Routing\Annotation\Route;
 
 #[Route(path: '/api/v1/user')]
-#[AsController]
-class UserController
+class UserController extends AbstractController
 {
     public function __construct(
         private readonly UserManager $userManager,
         private readonly EventDispatcherInterface $eventDispatcher,
+        private readonly FormFactoryInterface $formFactory,
     ) {
     }
 
@@ -30,7 +32,7 @@ class UserController
         throw new DeprecatedApiException('This API method is deprecated');
 
         $login = $request->request->get('login');
-        $userId = $this->userManager->saveUser($login);
+        $userId = $this->userManager->saveUserByLogin($login);
         [$data, $code] = $userId === null ?
             [['success' => false], 400] :
             [['success' => true, 'userId' => $userId], 200];
@@ -84,5 +86,25 @@ class UserController
         $this->eventDispatcher->dispatch(new CreateUserEvent($request->request->get('login')));
 
         return new JsonResponse(['success' => true], Response::HTTP_ACCEPTED);
+    }
+
+    #[Route(path: '/create-user', name: 'create_user', methods: ['GET', 'POST'])]
+    #[Route(path: '/update-user/{id}', name: 'update-user', methods: ['GET', 'POST'])]
+    public function manageUserAction(Request $request, string $_route, ?User $user = null): Response
+    {
+        $form = $this->formFactory->create(UserType::class, $user, ['isNew' => $_route === 'create_user']);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            /** @var User $user */
+            $user = $form->getData();
+            $this->userManager->saveUser($user);
+        }
+
+        return $this->renderForm('manageUser.html.twig', [
+            'form' => $form,
+            'isNew' => $_route === 'create_user',
+            'user' => $user,
+        ]);
     }
 }

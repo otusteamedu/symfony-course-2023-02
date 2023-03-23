@@ -32,7 +32,7 @@ class UserController extends AbstractController
     public function saveUserAction(Request $request): Response
     {
         $login = $request->request->get('login');
-        $userId = $this->userManager->saveUser($login);
+        $userId = $this->userManager->saveUserByLogin($login);
         [$data, $code] = $userId === null ?
             [['success' => false], 400] :
             [['success' => true, 'userId' => $userId], 200];
