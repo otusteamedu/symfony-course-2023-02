@@ -70,7 +70,7 @@
        }
    ```
 8. В папке src создаем папки Form/Type
-9. Создаем класс `SaveUserType`
+9. Создаем класс `UserType`
    ```php
    <?php
    
@@ -86,7 +86,7 @@
    use Symfony\Component\Form\FormBuilderInterface;
    use Symfony\Component\OptionsResolver\OptionsResolver;
    
-   class SaveUserType extends AbstractType
+   class UserType extends AbstractType
    {
        public function buildForm(FormBuilderInterface $builder, array $options)
        {
