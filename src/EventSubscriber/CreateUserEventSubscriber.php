@@ -21,6 +21,6 @@ class CreateUserEventSubscriber implements EventSubscriberInterface
 
     public function onCreateUser(CreateUserEvent $event): void
     {
-        $this->userManager->saveUser($event->getLogin());
+        $this->userManager->saveUserByLogin($event->getLogin());
     }
 }

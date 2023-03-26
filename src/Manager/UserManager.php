@@ -2,6 +2,7 @@
 
 namespace App\Manager;
 
+use App\DTO\ManageUserDTO;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -13,7 +14,7 @@ class UserManager
     ) {
     }
 
-    public function saveUser(string $login): ?int
+    public function saveUserByLogin(string $login): ?int
     {
         $user = new User();
         $user->setLogin($login);
@@ -67,5 +68,31 @@ class UserManager
         $userRepository = $this->entityManager->getRepository(User::class);
 
         return $userRepository->getUsers($page, $perPage);
+    }
+
+    public function saveUser(User $user): void
+    {
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
+    }
+
+    public function saveUserFromDTO(User $user, ManageUserDTO $manageUserDTO): ?int
+    {
+        $user->setLogin($manageUserDTO->login);
+        $user->setPassword($manageUserDTO->password);
+        $user->setAge($manageUserDTO->age);
+        $user->setIsActive($manageUserDTO->isActive);
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
+
+        return $user->getId();
+    }
+
+    public function getUserById(int $id): ?User
+    {
+        /** @var UserRepository $userRepository */
+        $userRepository = $this->entityManager->getRepository(User::class);
+
+        return $userRepository->find($id);
     }
 }
