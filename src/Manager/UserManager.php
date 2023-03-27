@@ -6,11 +6,13 @@ use App\DTO\ManageUserDTO;
 use App\Entity\User;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class UserManager
 {
     public function __construct(
-        private readonly EntityManagerInterface $entityManager
+        private readonly EntityManagerInterface $entityManager,
+        private readonly UserPasswordHasherInterface $userPasswordHasher,
     ) {
     }
 
@@ -79,9 +81,10 @@ class UserManager
     public function saveUserFromDTO(User $user, ManageUserDTO $manageUserDTO): ?int
     {
         $user->setLogin($manageUserDTO->login);
-        $user->setPassword($manageUserDTO->password);
+        $user->setPassword($this->userPasswordHasher->hashPassword($user, $manageUserDTO->password));
         $user->setAge($manageUserDTO->age);
         $user->setIsActive($manageUserDTO->isActive);
+        $user->setRoles($manageUserDTO->roles);
         $this->entityManager->persist($user);
         $this->entityManager->flush();
 
