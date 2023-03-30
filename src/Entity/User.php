@@ -11,6 +11,7 @@ use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 use Gedmo\Mapping\Annotation as Gedmo;
+use JMS\Serializer\Annotation as JMS;
 
 #[ORM\Table(name: '`user`')]
 #[ORM\Entity(repositoryClass: UserRepository::class)]
@@ -22,6 +23,7 @@ class User implements HasMetaTimestampsInterface, UserInterface, PasswordAuthent
     private ?int $id = null;
 
     #[ORM\Column(type: 'string', length: 32, unique: true, nullable: false)]
+    #[JMS\Groups(['video-user-info'])]
     private string $login;
 
     #[Gedmo\Timestampable(on: 'create')]
@@ -51,14 +53,19 @@ class User implements HasMetaTimestampsInterface, UserInterface, PasswordAuthent
     private Collection $subscriptionFollowers;
 
     #[ORM\Column(type: 'string', length: 120, nullable: false)]
+    #[JMS\Exclude]
     private string $password;
 
     #[Assert\NotBlank]
     #[Assert\GreaterThan(18)]
     #[ORM\Column(type: 'integer', nullable: false)]
+    #[JMS\Type('string')]
+    #[JMS\Groups(['video-user-info'])]
     private int $age;
 
     #[ORM\Column(type: 'boolean', nullable: false)]
+    #[JMS\Type('int')]
+    #[JMS\Groups(['video-user-info'])]
     private bool $isActive;
 
     #[ORM\Column(type: 'json', length: 1024, nullable: false)]
