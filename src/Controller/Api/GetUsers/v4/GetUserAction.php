@@ -15,17 +15,17 @@ class GetUserAction extends AbstractFOSRestController
     {
     }
 
-    #[Rest\Get(path: '/api/v4/users')]
-    public function __invoke(Request $request): Response
+    #[Rest\Get(path: '/api/v4/users.{_format}')]
+    public function __invoke(Request $request, string $_format): Response
     {
         $perPage = $request->request->get('perPage');
         $page = $request->request->get('page');
         $users = $this->userManager->getUsers($page ?? 0, $perPage ?? 20);
         $code = empty($users) ? Response::HTTP_NO_CONTENT : Response::HTTP_OK;
-        $context = (new Context())->setGroups(['video-user-info']);
+        $context = (new Context())->setGroups(['video-user-info', 'user-id-list']);
 
         return $this->handleView(
-            $this->view(['users' => $users], $code)->setContext($context),
+            $this->view(['users' => $users], $code)->setContext($context)->setFormat($_format),
         );
     }
 }
