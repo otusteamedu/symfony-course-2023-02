@@ -34,7 +34,7 @@
        {
        }
    
-       #[Rest\Get(path: '/api/v4/get-users')]
+       #[Rest\Get(path: '/api/v4/users')]
        public function __invoke(Request $request): Response
        {
            $perPage = $request->request->get('perPage');
@@ -96,7 +96,7 @@
     #[JMS\Groups(['video-user-info'])]
     private bool $isActive;
     ```
-2. В классе `App\Controller\GetUsers\v4\Controller` исправляем метод `getUsersAction`
+2. В классе `App\Controller\GetUsers\v4\GetUserAction` исправляем метод `__invoke`
     ```php
     #[Rest\Get(path: '/api/v4/users')]
     public function __invoke(Request $request): Response
@@ -141,7 +141,7 @@
     #[JMS\Groups(['user-id-list'])]
     private ?int $id = null;
     ```
-2. В классе `App\Controller\GetUsers\v4\Controller` в методе `getUsersAction` добавляем в контекст ещё одну группу
+2. В классе `App\Controller\GetUsers\v4\GetUserAction` в методе `__invoke` добавляем в контекст ещё одну группу
      ```php
      $context = (new Context())->setGroups(['user1', 'user2']);
      ```
@@ -149,11 +149,11 @@
 
 ## Добавляем параметры запроса
 
-1. Добавляем класс `Controller\Api\SaveUser\v4\Controller`
+1. Добавляем класс `Controller\Api\SaveUser\v5\CreateUserAction`
    ```php
    <?php
    
-   namespace App\Controller\Api\CreateUser\v4;
+   namespace App\Controller\Api\CreateUser\v5;
    
    use App\Entity\User;
    use App\Manager\UserManager;
@@ -205,7 +205,7 @@
       ```yaml
       param_fetcher_listener:  force
       ```
-1. Выполняем запрос Add user v4 из Postman-коллекции v4, видим, что пользователь сохранился в БД
+2. Выполняем запрос Add user v4 из Postman-коллекции v4, видим, что пользователь сохранился в БД
 
 ## Добавляем ParamConverter
 
@@ -356,7 +356,7 @@
        }
    }
    ```
-8. Добавляем класс `App\Controller\Api\SaveUser\v5\Output\UserIsSavedDTO`
+8. Добавляем класс `App\Controller\Api\SaveUser\v5\Output\UserCreatedDTO`
    ```php
    <?php
 
@@ -382,7 +382,7 @@
        }
    }
    ```
-9. Добавляем класс `App\Controller\Api\CreateUser\v5\Controller`
+9. Добавляем класс `App\Controller\Api\CreateUser\v5\CreateUserAction`
    ```php
    <?php
    
@@ -458,62 +458,59 @@
    }
    ```
 11. Добавляем класс `App\Symfony\MainParamConverter`
-     ```php
-     <?php
+   ```php
+   <?php
    
-     namespace App\Symfony;
+   namespace App\Symfony;
    
-     use App\Entity\Traits\SafeLoadFieldsTrait;
-     use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
-     use Sensio\Bundle\FrameworkExtraBundle\Request\ParamConverter\ParamConverterInterface;
-     use Symfony\Component\HttpFoundation\Request;
-     use Symfony\Component\OptionsResolver\OptionsResolver;
-     use Symfony\Component\Validator\ConstraintViolationListInterface;
-     use Symfony\Component\Validator\Validator\ValidatorInterface;
+   use App\Entity\Traits\SafeLoadFieldsTrait;
+   use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
+   use Sensio\Bundle\FrameworkExtraBundle\Request\ParamConverter\ParamConverterInterface;
+   use Symfony\Component\HttpFoundation\Request;
+   use Symfony\Component\OptionsResolver\OptionsResolver;
+   use Symfony\Component\Validator\ConstraintViolationListInterface;
+   use Symfony\Component\Validator\Validator\ValidatorInterface;
    
-     class MainParamConverter implements ParamConverterInterface
-     {
-         private ValidatorInterface $validator;
+   class MainParamConverter implements ParamConverterInterface
+   {
+       public function __construct(private readonly ValidatorInterface $validator)
+       {
+       }
    
-         public function __construct(ValidatorInterface $validator)
-         {
-             $this->validator = $validator;
-         }
+       public function apply(Request $httpRequest, ParamConverter $configuration): bool
+       {
+           $class = $configuration->getClass();
+           /** @var SafeLoadFieldsTrait $request */
+           $request = new $class();
+           $request->loadFromJsonRequest($httpRequest);
+           $errors = $this->validate($request, $httpRequest, $configuration);
+           $httpRequest->attributes->set('validationErrors', $errors);
    
-         public function apply(Request $httpRequest, ParamConverter $configuration): bool
-         {
-             $class = $configuration->getClass();
-             /** @var SafeLoadFieldsTrait $request */
-             $request = new $class();
-             $request->loadFromJsonRequest($httpRequest);
-             $errors = $this->validate($request, $httpRequest, $configuration);
-             $httpRequest->attributes->set('validationErrors', $errors);
+           return true;
+       }
    
-             return true;
-         }
+       public function supports(ParamConverter $configuration): bool
+       {
+           return !empty($configuration->getClass()) &&
+               in_array(SafeLoadFieldsTrait::class, class_uses($configuration->getClass()), true);
+       }
    
-         public function supports(ParamConverter $configuration): bool
-         {
-             return !empty($configuration->getClass()) &&
-                 in_array(SafeLoadFieldsTrait::class, class_uses($configuration->getClass()), true);
-         }
+       public function validate($request, Request $httpRequest, ParamConverter $configuration): ConstraintViolationListInterface
+       {
+           $httpRequest->attributes->set($configuration->getName(), $request);
+           $options = $configuration->getOptions();
+           $resolver = new OptionsResolver();
+           $resolver->setDefaults([
+               'groups' => null,
+               'traverse' => false,
+               'deep' => false,
+           ]);
+           $validatorOptions = $resolver->resolve($options['validator'] ?? []);
    
-         public function validate($request, Request $httpRequest, ParamConverter $configuration): ConstraintViolationListInterface
-         {
-             $httpRequest->attributes->set($configuration->getName(), $request);
-             $options = (array)$configuration->getOptions();
-             $resolver = new OptionsResolver();
-             $resolver->setDefaults([
-                 'groups' => null,
-                 'traverse' => false,
-                 'deep' => false,
-             ]);
-             $validatorOptions = $resolver->resolve($options['validator'] ?? []);
-   
-             return $this->validator->validate($request, null, $validatorOptions['groups']);
-         }
-     }
-     ```
+           return $this->validator->validate($request, null, $validatorOptions['groups']);
+       }
+   }
+   ```
 12. В классе `App\Entity\User` возвращаем правильные типы данных в атрибутах для полей `$age` и `$isActive`, а также
     добавляем к полю `$isActive` атрибут `#JMS\SerializedName`
    ```php
