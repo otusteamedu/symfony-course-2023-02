@@ -28,6 +28,11 @@ services:
         tags:
             - { name: doctrine.event_subscriber, connection: default }
 
+    monolog.formatter.app_formatter:
+        class: Monolog\Formatter\LineFormatter
+        arguments:
+            - "[%%level_name%%]: [%%datetime%%] %%message%%\n"
+
     strong_formatter:
         class: App\Service\FormatService
         factory: ['App\Service\FormatServiceFactory', 'strongFormatService']
