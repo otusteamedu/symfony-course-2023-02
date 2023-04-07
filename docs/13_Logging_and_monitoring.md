@@ -82,62 +82,71 @@
 2. Добавляем сервисы Sentry в `docker-compose.yml` (не забудьте прописать описание volume `sentry-pgdb`)
     ```yaml
     redis:
-        container_name: 'redis'
-        image: redis
+      container_name: 'redis'
+      image: redis:6.2-alpine
+      ports:
+        - "6379:6379"
     
     sentry-postgres:
-        image: postgres
-        container_name: 'sentry-postgres'
-        environment:
-          POSTGRES_USER: sentry
-          POSTGRES_PASSWORD: sentry
-          POSTGRES_DB: sentry
-        volumes:
-         - sentry-pgdb:/var/lib/postgresql/data
+      image: postgres
+      container_name: 'sentry-postgres'
+      environment:
+        POSTGRES_USER: sentry
+        POSTGRES_PASSWORD: sentry
+        POSTGRES_DB: sentry
+      volumes:
+        - sentry-pgdb:/var/lib/postgresql/data
     
     sentry:
-        image: sentry
-        container_name: 'sentry'
-        links:
-         - redis
-         - sentry-postgres
-        ports:
-         - 10000:9000
-        environment:
-          SENTRY_SECRET_KEY: '&1k8n7lr_p9q5fd_5*kde9*p)&scu%pqi*3*rflw+b%mprdob)'
-          SENTRY_POSTGRES_HOST: sentry-postgres
-          SENTRY_DB_USER: sentry
-          SENTRY_DB_PASSWORD: sentry
-          SENTRY_REDIS_HOST: redis
+      image: sentry
+      platform: linux/x86_64 # Для Mac на m1
+      container_name: 'sentry'
+      links:
+        - redis
+        - sentry-postgres
+      ports:
+        - 10000:9000
+      environment:
+        SENTRY_SECRET_KEY: '&1k8n7lr_p9q5fd_5*kde9*p)&scu%pqi*3*rflw+b%mprdob)'
+        SENTRY_POSTGRES_HOST: sentry-postgres
+        SENTRY_DB_USER: sentry
+        SENTRY_DB_PASSWORD: sentry
+        SENTRY_REDIS_HOST: redis
     
     cron:
-        image: sentry
-        container_name: 'sentry-cron'
-        links:
-         - redis
-         - sentry-postgres
-        command: "sentry run cron"
-        environment:
-          SENTRY_SECRET_KEY: '&1k8n7lr_p9q5fd_5*kde9*p)&scu%pqi*3*rflw+b%mprdob)'
-          SENTRY_POSTGRES_HOST: sentry-postgres
-          SENTRY_DB_USER: sentry
-          SENTRY_DB_PASSWORD: sentry
-          SENTRY_REDIS_HOST: redis
+      image: sentry
+      container_name: 'sentry-cron'
+      links:
+        - redis
+        - sentry-postgres
+      command: "sentry run cron"
+      environment:
+        SENTRY_SECRET_KEY: '&1k8n7lr_p9q5fd_5*kde9*p)&scu%pqi*3*rflw+b%mprdob)'
+        SENTRY_POSTGRES_HOST: sentry-postgres
+        SENTRY_DB_USER: sentry
+        SENTRY_DB_PASSWORD: sentry
+        SENTRY_REDIS_HOST: redis
     
     worker:
-        image: sentry
-        container_name: 'sentry-worker'
-        links:
-         - redis
-         - sentry-postgres
-        command: "sentry run worker"
-        environment:
-          SENTRY_SECRET_KEY: '&1k8n7lr_p9q5fd_5*kde9*p)&scu%pqi*3*rflw+b%mprdob)'
-          SENTRY_POSTGRES_HOST: sentry-postgres
-          SENTRY_DB_USER: sentry
-          SENTRY_DB_PASSWORD: sentry
-          SENTRY_REDIS_HOST: redis
+      image: sentry
+      container_name: 'sentry-worker'
+      links:
+        - redis
+        - sentry-postgres
+      command: "sentry run worker"
+      environment:
+        SENTRY_SECRET_KEY: '&1k8n7lr_p9q5fd_5*kde9*p)&scu%pqi*3*rflw+b%mprdob)'
+        SENTRY_POSTGRES_HOST: sentry-postgres
+        SENTRY_DB_USER: sentry
+        SENTRY_DB_PASSWORD: sentry
+        SENTRY_REDIS_HOST: redis
+
+   volumes:
+     dump:
+     postgresql:
+     sentry-pgdb:
     ```
+   
 3. Перезапускаем контейнеры и инициализируем Sentry
     1. Выходим из контейнера `php`
     2. Перезапускаем контейнеры
@@ -198,7 +207,7 @@
 ## Grafana для сбора метрик, интеграция с Graphite
 
 1. Входим в контейнер командой `docker exec -it php sh` и устанавливаем пакет `slickdeals/statsd`
-3. Добавляем сервисы Graphite и Grafana в `docker-compose.yml`
+2. Добавляем сервисы Graphite и Grafana в `docker-compose.yml`
     ```yaml
     graphite:
         image: graphiteapp/graphite-statsd
@@ -220,14 +229,14 @@
         ports:
           - 3000:3000
     ```
-4. Выходим из контейнера `php` и перезапускаем контейнеры
+3. Выходим из контейнера `php` и перезапускаем контейнеры
     ```shell
     docker-compose stop
     docker-compose up -d
     ```
-5. Проверяем, что можем зайти в интерфейс Graphite по адресу `localhost:8000`
-6. Проверяем, что можем зайти в интерфейс Grafana по адресу `localhost:3000`, логин / пароль - `admin` / `admin`
-7. Добавляем класс `App\Client\StatsdAPIClient`
+4. Проверяем, что можем зайти в интерфейс Graphite по адресу `localhost:8000`
+5. Проверяем, что можем зайти в интерфейс Grafana по адресу `localhost:3000`, логин / пароль - `admin` / `admin`
+6. Добавляем класс `App\Client\StatsdAPIClient`
     ```php
     <?php
     
@@ -254,7 +263,7 @@
         }
     }
     ```
-8. В файле `config/services.yaml` добавляем описание сервиса statsd API-клиента
+7. В файле `config/services.yaml` добавляем описание сервиса statsd API-клиента
     ```yaml
     App\Client\StatsdAPIClient:
         arguments: 
@@ -262,30 +271,132 @@
             - 8125
             - my_app
     ```
-9. В классе `App\Controller\Api\SaveUser\v5\SaveUserManager`
+8. В классе `App\Controller\Api\SaveUser\v5\SaveUserManager`
     1. Добавляем инъекцию `StatsdAPIClient`
         ```php
-        private StatsdAPIClient $statsdAPIClient;
-    
-        public function __construct(EntityManagerInterface $entityManager, SerializerInterface $serializer, LoggerInterface $logger, StatsdAPIClient $statsdAPIClient)
-        {
-            $this->entityManager = $entityManager;
-            $this->serializer = $serializer;
-            $this->logger = $logger;
-            $this->statsdAPIClient = $statsdAPIClient;
+         public function __construct(
+            private readonly EntityManagerInterface $entityManager,
+            private readonly SerializerInterface $serializer,
+            private readonly LoggerInterface $logger,
+            private readonly StatsdAPIClient $statsdAPIClient,
+        ) {
         }
         ```
     2. В начале метода `saveUser` инкрементируем счётчик
         ```php
         $this->statsdAPIClient->increment('save_user_v5_attempt');
         ```
-10. Выполняем несколько раз запрос Add user v5 из Postman-коллекции v5 и проверяем, что в Graphite появляются события
-11. Настраиваем график в Grafana
+9. Выполняем несколько раз запрос Add user v5 из Postman-коллекции v5 и проверяем, что в Graphite появляются события
+10. Настраиваем график в Grafana
     1. добавляем в Data source с типом Graphite и адресом graphite:80
     2. добавляем новый Dashboard
     3. на дашборде добавляем панель с запросом в Graphite счётчика `stats_counts.my_app.save_user_v5_attempt`
     4. видим график с запросами
-12. Выполняем ещё несколько раз запрос Add user v5 из Postman-коллекции v5 и проверяем, что в Grafana обновились данные
+11. Выполняем ещё несколько раз запрос Add user v5 из Postman-коллекции v5 и проверяем, что в Grafana обновились данные
 
 ## Логируем с соблюдением SOLID при помощи паттерна декоратор и евентов
+1. Создаем интерфейс `App\Controller\Api\CreateUser\v5\CreateUserManagerInterface`
+    ```php
+    <?php
+    
+    namespace App\Controller\Api\CreateUser\v5;
 
+    use App\Controller\Api\CreateUser\v5\Input\CreateUserDTO;
+    use App\Controller\Api\CreateUser\v5\Output\UserCreatedDTO;
+    
+    interface CreateUserManagerInterface
+    {
+        public function saveUser(CreateUserDTO $saveUserDTO): UserCreatedDTO;
+    }
+    ```
+2. Имплементируем его в `App\Controller\Api\CreateUser\v5\CreateUserManager` и удаляем все вызовы класса `LoggerInterface`
+    ```php
+    class CreateUserManager implements CreateUserManagerInterface
+    ```
+3. Создаем класс `App\Controller\Api\CreateUser\v5\CreateUserManagerLoggerDecorator`
+    ```php
+    <?php
+    
+    namespace App\Controller\Api\CreateUser\v5;
+    
+    use App\Controller\Api\CreateUser\v5\Input\CreateUserDTO;
+    use App\Controller\Api\CreateUser\v5\Output\UserCreatedDTO;
+    use Psr\Log\LoggerInterface;
+    
+    class CreateUserManagerLoggerDecorator implements CreateUserManagerInterface
+    {
+        public function __construct(
+            private readonly CreateUserManagerInterface $manager,
+            private readonly LoggerInterface $logger,
+        ) {
+        }
+    
+        public function saveUser(CreateUserDTO $saveUserDTO): UserCreatedDTO
+        {
+            $this->logger->info('Creating new user');
+    
+            try {
+                $result = $this->manager->saveUser($saveUserDTO);
+            } catch (\Throwable $e) {
+                $this->logger->error('Creation error');
+                throw $e;
+            }
+    
+            $this->logger->info('New user created');
+    
+            return $result;
+        }
+    }
+    ```
+4. Из файла `config/packages/monolog.yaml` удаляем строку `level: critical` в `when@dev.monolog.handlers.main`
+5. Делаем запрос и проверяем работоспособность
+
+### Логируем с помощью событий
+1. Изменяем класс `App\EventSubscriber\CreateUserEventSubscriber`
+    ```php
+    <?php
+    
+    namespace App\EventSubscriber;
+    
+    use App\Event\CreateUserEvent;
+    use Psr\Log\LoggerInterface;
+    use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+    
+    class CreateUserEventSubscriber implements EventSubscriberInterface
+    {
+        public function __construct(
+            private readonly LoggerInterface $logger,
+        ) {
+        }
+    
+        public static function getSubscribedEvents(): array
+        {
+            return [
+                CreateUserEvent::class => 'logCreateUser'
+            ];
+        }
+    
+        public function logCreateUser(CreateUserEvent $event): void
+        {
+            $this->logger->info('User created with login: ' . $event->getLogin());
+        }
+    }
+    ```
+2. Добавляем в метод  `saveUser` класса `App\Controller\Api\CreateUser\v5\CreateUserManager` вызов события
+    ```php
+        public function __construct(
+            private readonly EntityManagerInterface $entityManager,
+            private readonly SerializerInterface $serializer,
+            private readonly StatsdAPIClient $statsdAPIClient,
+            private readonly EventDispatcherInterface $eventDispatcher,
+        ) {
+        }
+        // ... 
+            $this->entityManager->persist($user);
+            $this->entityManager->flush();
+    
+            $this->eventDispatcher->dispatch(new CreateUserEvent($user->getLogin()));
+    
+            $result = new UserCreatedDTO();
+    ```
+3. Делаем запрос и проверяем работоспособность по логам
