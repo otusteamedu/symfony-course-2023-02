@@ -96,8 +96,8 @@
                    'attr' => [
                        'data-time' => time(),
                        'placeholder' => 'Логин пользователя',
+                       'class' => 'user-login',
                    ],
-                   'class' => 'user-login',
                ])
                ->add('age', IntegerType::class, [
                    'label' => 'Возраст',
