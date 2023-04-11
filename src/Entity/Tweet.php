@@ -2,12 +2,14 @@
 
 namespace App\Entity;
 
+use App\Repository\TweetRepository;
 use DateTime;
 use Doctrine\ORM\Mapping as ORM;
+use Gedmo\Mapping\Annotation as Gedmo;
 
 #[ORM\Table(name: 'tweet')]
 #[ORM\Index(columns: ['author_id'], name: 'tweet__author_id__ind')]
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: TweetRepository::class)]
 class Tweet
 {
     #[ORM\Column(name: 'id', type: 'bigint', unique: true)]
@@ -23,9 +25,11 @@ class Tweet
     private string $text;
 
     #[ORM\Column(name: 'created_at', type: 'datetime', nullable: false)]
+    #[Gedmo\Timestampable(on: 'create')]
     private DateTime $createdAt;
 
     #[ORM\Column(name: 'updated_at', type: 'datetime', nullable: false)]
+    #[Gedmo\Timestampable(on: 'update')]
     private DateTime $updatedAt;
 
     public function getId(): int
@@ -79,6 +83,7 @@ class Tweet
         return [
             'id' => $this->id,
             'login' => $this->author->getLogin(),
+            'text' => $this->text,
             'createdAt' => $this->createdAt->format('Y-m-d H:i:s'),
             'updatedAt' => $this->updatedAt->format('Y-m-d H:i:s'),
         ];
