@@ -16,6 +16,7 @@
         "jms/serializer-bundle": "^5.2",
         "lexik/jwt-authentication-bundle": "^2.18",
         "nyholm/psr7": "^1.5",
+        "php-amqplib/rabbitmq-bundle": "^2.11",
         "sensio/framework-extra-bundle": "^6.2",
         "sentry/sentry-symfony": "^4.7",
         "slickdeals/statsd": "^3.1",
