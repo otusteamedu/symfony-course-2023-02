@@ -2,7 +2,6 @@
 
 namespace App\DTO;
 
-use Symfony\Component\HttpFoundation\InputBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Validator\Constraints as Assert;
 use App\Entity\User;
@@ -28,7 +27,16 @@ class ManageUserDTO
         public array $followers = [],
 
         #[Assert\Type('array')]
-        public array $roles = []
+        public array $roles = [],
+
+        #[Assert\Length(max: 11)]
+        public ?string $phone = null,
+
+        #[Assert\Length(max: 128)]
+        public ?string $email = null,
+
+        #[Assert\Length(max: 10)]
+        public ?string $preferred = null,
     ) {
     }
 
@@ -52,6 +60,9 @@ class ManageUserDTO
                 },
                 $user->getFollowers()
             ),
+            'phone' => $user->getPhone(),
+            'email' => $user->getEmail(),
+            'preferred' => $user->getPreferred(),
         ]);
     }
 
