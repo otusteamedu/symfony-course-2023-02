@@ -12,6 +12,7 @@
         "doctrine/doctrine-migrations-bundle": "^3.2",
         "doctrine/event-manager": "^1.2",
         "doctrine/orm": "^2.14",
+        "friendsofsymfony/elastica-bundle": "^6.2",
         "friendsofsymfony/rest-bundle": "^3.5",
         "jms/serializer-bundle": "^5.2",
         "lexik/jwt-authentication-bundle": "^2.18",
