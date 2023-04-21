@@ -10,6 +10,7 @@ use App\Event\CreateUserEvent;
 use Doctrine\ORM\EntityManagerInterface;
 use JMS\Serializer\SerializationContext;
 use JMS\Serializer\SerializerInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class CreateUserManager implements CreateUserManagerInterface
