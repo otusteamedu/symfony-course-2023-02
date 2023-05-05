@@ -51,12 +51,11 @@ class AddFollowersCommandTest extends FixturedTestCase
         $userManager = new UserManager($this->getDoctrineManager(), $encoder, $finder);
         $author = $userManager->findUserByLogin(MultipleUsersFixture::PRATCHETT);
         $params = ['authorId' => $author->getId()];
-        $options = ['login' => $login];
-        if ($followersCount !== null) {
-            $params['count'] = $followersCount;
-        }
-        $commandTester->execute($params, $options);
+        $inputs = $followersCount === null ? ["\n"] : ["$followersCount\n"];
+        $commandTester->setInputs($inputs);
+        $commandTester->execute($params);
         $output = $commandTester->getDisplay();
+
         static::assertSame($expected, $output);
     }
 }
