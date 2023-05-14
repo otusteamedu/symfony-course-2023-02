@@ -16,6 +16,7 @@
         "friendsofsymfony/rest-bundle": "^3.5",
         "jms/serializer-bundle": "^5.2",
         "lexik/jwt-authentication-bundle": "^2.18",
+        "nelmio/api-doc-bundle": "^4.11",
         "nyholm/psr7": "^1.5",
         "php-amqplib/rabbitmq-bundle": "^2.11",
         "sensio/framework-extra-bundle": "^6.2",
