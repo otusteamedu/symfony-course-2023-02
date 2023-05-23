@@ -2,13 +2,13 @@
 
 namespace App\Consumer\UpdateFeed;
 
-use App\Client\StatsdAPIClient;
 use App\Consumer\UpdateFeed\Input\Message;
 use App\DTO\SendNotificationDTO;
 use App\Entity\Tweet;
 use App\Entity\User;
 use App\Service\AsyncService;
 use App\Service\FeedService;
+use StatsdBundle\Client\StatsdAPIClient;
 use Doctrine\ORM\EntityManagerInterface;
 use JsonException;
 use OldSound\RabbitMqBundle\RabbitMq\ConsumerInterface;
