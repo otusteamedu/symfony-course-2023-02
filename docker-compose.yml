@@ -41,59 +41,6 @@ services:
     ports:
       - "6379:6379"
 
-  sentry-postgres:
-    image: postgres
-    container_name: 'sentry-postgres'
-    environment:
-      POSTGRES_USER: sentry
-      POSTGRES_PASSWORD: sentry
-      POSTGRES_DB: sentry
-    volumes:
-      - sentry-pgdb:/var/lib/postgresql/data
-
-  sentry:
-    image: sentry
-    platform: linux/x86_64 # Для Mac на m1
-    container_name: 'sentry'
-    links:
-      - redis
-      - sentry-postgres
-    ports:
-      - 10000:9000
-    environment:
-      SENTRY_SECRET_KEY: '&1k8n7lr_p9q5fd_5*kde9*p)&scu%pqi*3*rflw+b%mprdob)'
-      SENTRY_POSTGRES_HOST: sentry-postgres
-      SENTRY_DB_USER: sentry
-      SENTRY_DB_PASSWORD: sentry
-      SENTRY_REDIS_HOST: redis
-
-  cron:
-    image: sentry
-    container_name: 'sentry-cron'
-    links:
-      - redis
-      - sentry-postgres
-    command: "sentry run cron"
-    environment:
-      SENTRY_SECRET_KEY: '&1k8n7lr_p9q5fd_5*kde9*p)&scu%pqi*3*rflw+b%mprdob)'
-      SENTRY_POSTGRES_HOST: sentry-postgres
-      SENTRY_DB_USER: sentry
-      SENTRY_DB_PASSWORD: sentry
-      SENTRY_REDIS_HOST: redis
-
-  worker:
-    image: sentry
-    container_name: 'sentry-worker'
-    links:
-      - redis
-      - sentry-postgres
-    command: "sentry run worker"
-    environment:
-      SENTRY_SECRET_KEY: '&1k8n7lr_p9q5fd_5*kde9*p)&scu%pqi*3*rflw+b%mprdob)'
-      SENTRY_POSTGRES_HOST: sentry-postgres
-      SENTRY_DB_USER: sentry
-      SENTRY_DB_PASSWORD: sentry
-      SENTRY_REDIS_HOST: redis
 
   graphite:
     image: graphiteapp/graphite-statsd
@@ -160,14 +107,6 @@ services:
       - 9200:9200
       - 9300:9300
 
-  kibana:
-    image: docker.elastic.co/kibana/kibana:7.9.2
-    container_name: 'kibana'
-    depends_on:
-      - elasticsearch
-    ports:
-      - 5601:5601
-
 
   postgres_test:
     image: postgres:11
@@ -183,6 +122,12 @@ services:
     volumes:
       - dump:/app/dump
       - postgresql_test:/var/lib/postgresql/data
+
+  openapi-generator:
+    image: openapitools/openapi-generator-cli:latest
+    volumes:
+      - ./:/local
+    command: ["generate", "-i", "/local/apidoc.yaml", "-g", "php", "-o", "/local/api-client"]
 
 volumes:
   dump:
