@@ -127,3 +127,12 @@ services:
     App\Manager\UserManager:
         arguments:
             $finder: '@fos_elastica.finder.user'
+
+    builder_factory:
+        class: PhpParser\BuilderFactory
+
+    App\Command\MakeApplicationCommand:
+        tags: [ 'maker.command' ]
+        arguments:
+            - '@maker.file_manager'
+            - '@builder_factory'
