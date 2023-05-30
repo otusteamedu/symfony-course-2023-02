@@ -1,4 +1,7 @@
 {
+    "aleksandr-yask/statsdbundle-23-03": {
+        "version": "dev-master"
+    },
     "codeception/codeception": {
         "version": "4.2",
         "recipe": {

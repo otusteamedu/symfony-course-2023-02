@@ -7,6 +7,7 @@
         "php": ">=8.1",
         "ext-ctype": "*",
         "ext-iconv": "*",
+        "aleksandr-yask/statsdbundle-23-03": "dev-master",
         "doctrine/cache": "^1.10",
         "doctrine/doctrine-bundle": "^2.8",
         "doctrine/doctrine-migrations-bundle": "^3.2",
@@ -107,5 +108,11 @@
         "doctrine/doctrine-fixtures-bundle": "^3.4",
         "mockery/mockery": "^1.5",
         "symfony/phpunit-bridge": "^6.2"
-    }
+    },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "git@github.com:aleksandr-yask/statsdbundle-23-03.git"
+        }
+    ]
 }
