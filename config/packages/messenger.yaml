@@ -26,4 +26,4 @@ framework:
             # Route your messages to the transports
             # 'App\Message\YourMessage': async
             App\DTO\AddFollowersDTO: add_followers
-            FeedBundle\DTO\SendNotificationDTO: send_notification
+            FeedBundle\DTO\SendNotificationDTO: doctrine
