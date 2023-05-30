@@ -116,6 +116,18 @@
             "config/packages/jms_serializer.yaml"
         ]
     },
+    "kunicmarko/jms-messenger-adapter": {
+        "version": "1.1",
+        "recipe": {
+            "repo": "github.com/symfony/recipes-contrib",
+            "branch": "main",
+            "version": "0.1",
+            "ref": "6bf8921b8c99eb4a89ae573b47125678a27d756a"
+        },
+        "files": [
+            "config/packages/jms_messenger.yaml"
+        ]
+    },
     "lexik/jwt-authentication-bundle": {
         "version": "2.18",
         "recipe": {
