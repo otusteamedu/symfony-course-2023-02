@@ -12,6 +12,7 @@ use Nelmio\ApiDocBundle\Annotation\Model;
 use OpenApi\Annotations as OA;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Messenger\Stamp\HandledStamp;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 
 class CreateUserAction extends AbstractFOSRestController
@@ -44,8 +45,11 @@ class CreateUserAction extends AbstractFOSRestController
             $view = $this->createValidationErrorResponse(Response::HTTP_BAD_REQUEST, $validationErrors);
             return $this->handleView($view);
         }
-        $this->messageBus->dispatch(CreateUserCommand::createFromRequest($request));
+        $envelope = $this->messageBus->dispatch(CreateUserCommand::createFromRequest($request));
+        /** @var HandledStamp|null $handledStamp */
+        $handledStamp = $envelope->last(HandledStamp::class);
+        [$data, $code] = ($handledStamp?->getResult() === null) ? [['success' => false], 400] : [['userId' => $handledStamp?->getResult()], 200];
 
-        return $this->handleView($this->view(['success' => true]));
+        return $this->handleView($this->view($data, $code));
     }
 }
